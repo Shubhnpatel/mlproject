@@ -3,6 +3,7 @@ import sys
 import dill
 from src.exception import CustomException
 from sklearn.metrics import r2_score
+from sklearn.model_selection import GridSearchCV
 
 def save_object(file_path, obj):
     try:
@@ -15,24 +16,35 @@ def save_object(file_path, obj):
     except Exception as e:
         raise CustomException(e, sys)
 
-def evaluate_model(xTrain,yTrain,xTest,yTest,models):
+def evaluate_model(xTrain, yTrain,xTest,yTest,models,param):
     try:
         report = {}
 
         for i in range(len(list(models))):
             model = list(models.values())[i]
-            model.fit(xTrain,yTrain)
+            para=param[list(models.keys())[i]]
 
-            yTrainPred = model.predict(xTrain)
-            yTestPred = model.predict(xTest)
+            gs = GridSearchCV(model,para,cv=3)
+            gs.fit(xTrain,yTrain)
 
-            train_model_score = r2_score(yTrain,yTrainPred)
-            test_model_score = r2_score(yTest,yTestPred)
+            model.set_params(**gs.best_params_)
+            model.fit(xTest,yTest)
+
+            #model.fit(xTrain, y_train)  # Train model
+
+            y_train_pred = model.predict(xTrain)
+
+            y_test_pred = model.predict(xTest)
+
+            train_model_score = r2_score(yTrain, y_train_pred)
+
+            test_model_score = r2_score(yTest, y_test_pred)
 
             report[list(models.keys())[i]] = test_model_score
-        
-        return report 
-            
-    except Exception as e :
-        raise CustomException
-        
+
+        return report
+
+    except Exception as e:
+        raise CustomException(e, sys)
+
+
