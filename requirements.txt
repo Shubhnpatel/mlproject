@@ -1,4 +1,8 @@
-pandas 
+flask
+pandas
+scikit-learn
+catboost
+xgboost
 numpy
-seaborn
+gunicorn
 -e .
